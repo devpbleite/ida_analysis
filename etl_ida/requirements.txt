@@ -1,0 +1,5 @@
+pandas
+odfpy
+psycopg2-binary
+selenium
+

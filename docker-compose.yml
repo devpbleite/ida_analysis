@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:17.5-bookworm
+    container_name: ida_postgres_db
+    environment:
+      POSTGRES_DB: ida_datamart
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      # Mounts the SQL scripts to initialize the database
+      - ./sql_init:/docker-entrypoint-initdb.d
+      # Optional: Persist database data locally
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Expose port 5432 for potential external access/debugging (optional)
+      - "5432:5432"
+    networks:
+      - ida_network
+
+  etl:
+    build:
+      context: ./etl_ida # Path to the directory containing the Dockerfile
+      dockerfile: Dockerfile
+    container_name: ida_etl_app
+    depends_on:
+      - db # Ensures db starts before etl
+    environment:
+      # Pass database connection details to the ETL script
+      POSTGRES_HOST: db # Service name defined in this compose file
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ida_datamart
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      # Mount the directory with manually uploaded ODS files into the container
+      # The script expects them at /home/ubuntu/upload
+      - ./upload:/home/ubuntu/upload
+      # Optional: Mount a directory for downloaded ODS files if implemented
+      # - ./dados_ida_downloaded:/home/ubuntu/dados_ida_downloaded
+      # Optional: Mount a directory for processed files if needed
+      # - ./dados_ida_processed:/home/ubuntu/dados_ida_processed
+    networks:
+      - ida_network
+
+networks:
+  ida_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    # Defines a named volume for persisting PostgreSQL data
+
