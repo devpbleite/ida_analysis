@@ -14,7 +14,7 @@ services:
       # Optional: Persist database data locally
       - postgres_data:/var/lib/postgresql/data
     ports:
-      # Expose port 5432 for potential external access/debugging (optional)
+      # Expose port 5432 for potential external access/debugging
       - "5432:5432"
     networks:
       - ida_network
